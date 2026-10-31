@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Theme for screens still built with Views. NeedanappViewTheme.apply() sets night mode and the accent colors from
+        the same ThemeSettings as the Compose theme at runtime.
+    -->
+    <style name="Theme.Needanapp" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowLayoutInDisplayCutoutMode">always</item>
+        <item name="shapeAppearanceCornerLarge">@style/ShapeAppearance.Needanapp.Large</item>
+        <item name="shapeAppearanceCornerExtraLarge">@style/ShapeAppearance.Needanapp.ExtraLarge</item>
+    </style>
+
+    <style name="ShapeAppearance.Needanapp.Large" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Needanapp.ExtraLarge" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <!-- "Pure black" in dark mode, applied on top of the activity theme -->
+    <style name="ThemeOverlay.Needanapp.PureBlack" parent="">
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="colorSurface">@android:color/black</item>
+        <item name="colorSurfaceDim">@android:color/black</item>
+        <item name="colorSurfaceContainerLowest">@android:color/black</item>
+    </style>
+</resources>
