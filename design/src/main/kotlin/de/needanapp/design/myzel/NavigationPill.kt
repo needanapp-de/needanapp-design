@@ -287,6 +287,8 @@ internal fun NavigationPillWithMenu(
     val shown = visible && !isKeyboardOpen
     var expanded by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(shown) { if (!shown) expanded = false }
+    // another page, chosen in the pill or by swiping, folds the menu
+    LaunchedEffect(selectedIndex) { expanded = false }
     BackHandler(enabled = expanded) { expanded = false }
     val scrim by animateColorAsState(
         if (expanded) MaterialTheme.colorScheme.scrim.copy(alpha = SCRIM_ALPHA) else Color.Transparent,
@@ -323,7 +325,10 @@ internal fun NavigationPillWithMenu(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         items.forEachIndexed { index, item ->
-                            PillEntry(item, isSelected = index == selectedIndex) { onSelect(index) }
+                            PillEntry(item, isSelected = index == selectedIndex) {
+                                expanded = false
+                                onSelect(index)
+                            }
                         }
                     }
                 }

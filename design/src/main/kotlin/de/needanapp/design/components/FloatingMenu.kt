@@ -351,6 +351,8 @@ internal fun NeedanappPillWithMenu(
     val shown = visible && !isKeyboardOpen
     var expanded by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(shown) { if (!shown) expanded = false }
+    // another page, chosen in the pill or by swiping, folds the menu
+    LaunchedEffect(selectedIndex) { expanded = false }
     BackHandler(enabled = expanded) { expanded = false }
     // unfolded, the bar covers the screen, so a tap anywhere outside the menu folds it
     Box(
@@ -411,7 +413,10 @@ internal fun NeedanappPillWithMenu(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             items.forEachIndexed { index, item ->
-                                NeedanappPillEntry(item, isSelected = index == selectedIndex, showLabel = true) { onSelect(index) }
+                                NeedanappPillEntry(item, isSelected = index == selectedIndex, showLabel = true) {
+                                    expanded = false
+                                    onSelect(index)
+                                }
                             }
                         }
                         Box(Modifier.padding(horizontal = 4.dp).width(1.dp).height(NeedanappDividerHeight).background(LocalDesignColors.current.divider))

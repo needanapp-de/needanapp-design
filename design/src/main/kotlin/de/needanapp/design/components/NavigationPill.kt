@@ -273,7 +273,7 @@ fun NavigationPill(
     if (trailingMenu == null) {
         PillRow(modifier, hazeState, leading, trailingAction, pillVisible) { entries {} }
     } else {
-        PillRowWithMenu(modifier, hazeState, leading, trailingAction, trailingMenu, pillVisible, entries)
+        PillRowWithMenu(modifier, hazeState, leading, trailingAction, trailingMenu, pillVisible, selectedIndex, entries)
     }
 }
 
@@ -689,6 +689,8 @@ fun NavigationPillWithMenu(
     val shown = visible && !isKeyboardOpen
     var expanded by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(shown) { if (!shown) expanded = false }
+    // another page, chosen in the pill or by swiping, folds the menu
+    LaunchedEffect(selectedIndex) { expanded = false }
     MenuOverlay(expanded, onFold = { expanded = false }, modifier) {
         AnimatedVisibility(
             visible = shown,
@@ -707,7 +709,10 @@ fun NavigationPillWithMenu(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         items.forEachIndexed { index, item ->
-                            PillEntry(item, isSelected = index == selectedIndex, showLabel = showLabels) { onSelect(index) }
+                            PillEntry(item, isSelected = index == selectedIndex, showLabel = showLabels) {
+                                expanded = false
+                                onSelect(index)
+                            }
                         }
                     }
                 }
@@ -738,6 +743,7 @@ private fun PillRowWithMenu(
     trailingAction: PillAction?,
     menu: PillMenu,
     visible: Boolean,
+    selectedIndex: Int,
     pill: @Composable (fold: () -> Unit) -> Unit,
 ) {
     val isKeyboardOpen = WindowInsets.isImeVisible
@@ -745,6 +751,8 @@ private fun PillRowWithMenu(
     val canUnfold = trailingAction == null
     var expanded by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(shown, canUnfold) { if (!shown || !canUnfold) expanded = false }
+    // another page, chosen in the pill or by swiping, folds the menu
+    LaunchedEffect(selectedIndex) { expanded = false }
     val fold = { expanded = false }
     MenuOverlay(expanded, onFold = fold, modifier) {
         AnimatedVisibility(

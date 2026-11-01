@@ -14,6 +14,14 @@ Geplant:
 - GitHub Actions bzw. Gitea-Actions: Build + Tests bei jedem Push
 - Weitere Bausteine: Toasts im eigenen Stil
 
+## [0.56.1] – 2026-11-01
+
+### Behoben
+
+- `NavigationPillWithMenu` und `NavigationPill(trailingMenu = …)`: Das offene Menü klappt zu, sobald eine Seite der
+  Pille gewählt wird, per Tipp auf einen Eintrag oder per Wischen (neuer `selectedIndex`), in allen Stilen. Bisher
+  blieb es offen über der neuen Seite.
+
 ## [0.56.0] – 2026-10-31
 
 ### Hinzugefügt
