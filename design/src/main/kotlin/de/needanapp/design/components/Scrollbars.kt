@@ -59,11 +59,13 @@ import kotlin.math.roundToInt
 /**
  * A thin bar at the end edge of a scrolling list showing where it stands and how much of it is in view. It shows while
  * the list scrolls and fades out a second after; it can't be grabbed. [contentPadding] is the list's own, so the bar
- * runs between a header the list scrolls under and the pill below it. Nothing shows while everything fits.
+ * runs between a header the list scrolls under and the pill below it. Nothing shows while everything fits. With
+ * [reverseLayout] as given to the list (e.g. a chat with the newest message at the bottom), the bar stands as the list
+ * shows it, not by its order of items.
  */
 @Composable
-fun Modifier.scrollbar(state: LazyListState, contentPadding: PaddingValues = PaddingValues()): Modifier =
-    scrollbar(remember(state) { LazyListSource(state) }, contentPadding)
+fun Modifier.scrollbar(state: LazyListState, contentPadding: PaddingValues = PaddingValues(), reverseLayout: Boolean = false): Modifier =
+    scrollbar(remember(state, reverseLayout) { LazyListSource(state, reverseLayout) }, contentPadding)
 
 /** [scrollbar] for a grid. */
 @Composable
@@ -118,7 +120,21 @@ fun FastScrollbar(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
     label: ((key: Any) -> String?)? = null,
-) = FastScrollbar(remember(state) { LazyListSource(state) }, modifier, contentPadding, label)
+) = FastScrollbar(state, modifier, contentPadding, reverseLayout = false, label)
+
+/**
+ * [FastScrollbar] for a list with [reverseLayout] as given to it: handle, dragging and the bubble then follow what is
+ * on screen, the topmost item being the one furthest from the start of the list. An overload of its own, so that
+ * [label] stays the last parameter (a trailing lambda) and the fourth one of the variant above.
+ */
+@Composable
+fun FastScrollbar(
+    state: LazyListState,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(),
+    reverseLayout: Boolean,
+    label: ((key: Any) -> String?)? = null,
+) = FastScrollbar(remember(state, reverseLayout) { LazyListSource(state, reverseLayout) }, modifier, contentPadding, label)
 
 /** [FastScrollbar] for a grid. */
 @Composable
@@ -286,8 +302,12 @@ private interface ScrollbarSource {
     suspend fun scrollTo(fraction: Float)
 }
 
-/** Estimated from the items in view: their average size stands for the rest. */
-private class LazyListSource(private val state: LazyListState) : ScrollbarSource {
+/**
+ * Estimated from the items in view: their average size stands for the rest. [reversed] for a list with reverseLayout:
+ * its first item is at the bottom, so progress and jumps are mirrored. Offsets of the items count from the start of
+ * the list either way, at the bottom when reversed; the top edge on screen is then the end of the viewport.
+ */
+private class LazyListSource(private val state: LazyListState, private val reversed: Boolean = false) : ScrollbarSource {
     override val isScrolling get() = state.isScrollInProgress
 
     override fun span(): ScrollbarSpan? {
@@ -303,15 +323,20 @@ private class LazyListSource(private val state: LazyListState) : ScrollbarSource
             !state.canScrollForward -> 1f
             else -> (scrolled / (total - viewport).coerceAtLeast(1f)).coerceIn(0f, 1f)
         }
-        return ScrollbarSpan(progress, (viewport / total).coerceIn(0f, 1f))
+        return ScrollbarSpan(if (reversed) 1f - progress else progress, (viewport / total).coerceIn(0f, 1f))
     }
 
     // items mostly hidden under a header the list scrolls below don't count
-    override fun topKeys() = state.layoutInfo.visibleItemsInfo.filter { it.offset + it.size / 2 >= 0 }.map { it.key }
+    override fun topKeys(): List<Any> {
+        val info = state.layoutInfo
+        if (!reversed) return info.visibleItemsInfo.filter { it.offset + it.size / 2 >= 0 }.map { it.key }
+        val top = info.viewportEndOffset - info.afterContentPadding
+        return info.visibleItemsInfo.filter { it.offset + it.size / 2 <= top }.asReversed().map { it.key }
+    }
 
     override suspend fun scrollTo(fraction: Float) {
         val count = state.layoutInfo.totalItemsCount
-        if (count > 0) state.scrollToItem((fraction * (count - 1)).roundToInt())
+        if (count > 0) state.scrollToItem(((if (reversed) 1f - fraction else fraction) * (count - 1)).roundToInt())
     }
 }
 

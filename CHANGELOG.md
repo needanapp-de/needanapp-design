@@ -14,6 +14,23 @@ Geplant:
 - GitHub Actions bzw. Gitea-Actions: Build + Tests bei jedem Push
 - Weitere Bausteine: Toasts im eigenen Stil
 
+## [0.57.1] – 2026-11-04
+
+### Behoben
+
+- `FastScrollbar(LazyListState, …)`: `label` ist wieder der letzte Parameter, als nachgestelltes Lambda und an vierter
+  Stelle nutzbar wie vor 0.57.0. `reverseLayout` hat dafür eine eigene Überladung (`reverseLayout` vor `label`, ohne
+  Standardwert); Aufrufe mit benannten Argumenten wie `reverseLayout = true, label = …` bleiben gültig.
+
+## [0.57.0] – 2026-11-04
+
+### Hinzugefügt
+
+- `Modifier.scrollbar(LazyListState, …, reverseLayout)` und `FastScrollbar(LazyListState, …, reverseLayout)` für Listen
+  mit `reverseLayout = true`, etwa einen Chat mit der neuesten Nachricht unten: Balken, Griff, Ziehen und die Blase
+  folgen dann dem Bildschirm statt der Reihenfolge der Einträge; die Blase nennt den obersten sichtbaren Eintrag. Ohne
+  Angabe bleibt alles wie bisher.
+
 ## [0.56.1] – 2026-11-01
 
 ### Behoben
