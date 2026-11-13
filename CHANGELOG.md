@@ -14,6 +14,14 @@ Geplant:
 - GitHub Actions bzw. Gitea-Actions: Build + Tests bei jedem Push
 - Weitere Bausteine: Toasts im eigenen Stil
 
+## [0.58.0] – 2026-11-13
+
+### Hinzugefügt
+
+- `TextFieldRow` und `TextFieldTile`: `revealed` und `onRevealedChange`, damit der Aufrufer weiß und bestimmt, ob ein
+  Passwort (`isSecret`) gerade angezeigt wird – etwa um es nur zur Überprüfung ein zweites Mal abzufragen, solange es
+  verborgen ist. Ohne Angabe merkt sich das Feld den Zustand wie bisher selbst.
+
 ## [0.57.1] – 2026-11-04
 
 ### Behoben

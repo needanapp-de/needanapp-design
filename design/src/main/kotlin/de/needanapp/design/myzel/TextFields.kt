@@ -54,9 +54,12 @@ internal fun TextFieldRow(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     leadingIcon: ImageVector? = null,
     enabled: Boolean = true,
+    revealed: Boolean? = null,
+    onRevealedChange: ((Boolean) -> Unit)? = null,
 ) {
-    var revealed by rememberSaveable { mutableStateOf(false) }
-    val hidden = isSecret && !revealed
+    var ownRevealed by rememberSaveable { mutableStateOf(false) }
+    val isRevealed = revealed ?: ownRevealed
+    val hidden = isSecret && !isRevealed
     Surface(shape = position.shape(), color = LocalDesignColors.current.card, modifier = modifier.fillMaxWidth().rowOutline(position)) {
         OutlinedTextField(
             value = value,
@@ -71,7 +74,12 @@ internal fun TextFieldRow(
             enabled = enabled,
             leadingIcon = leadingIcon?.let { { Icon(it, contentDescription = null) } },
             trailingIcon = if (isSecret) {
-                { RevealButton(hidden) { revealed = !revealed } }
+                {
+                    RevealButton(hidden) {
+                        if (revealed == null) ownRevealed = !isRevealed
+                        onRevealedChange?.invoke(!isRevealed)
+                    }
+                }
             } else {
                 null
             },

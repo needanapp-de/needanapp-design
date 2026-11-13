@@ -35,7 +35,9 @@ import de.needanapp.design.myzel.SecretTextField as MyzelSecretTextField
 
 /**
  * A text field as a row of a [SettingsGroup], for forms in the grouped style. [error] replaces [supportingText] and
- * marks the field; [isSecret] hides the text behind dots with a button to show it.
+ * marks the field; [isSecret] hides the text behind dots with a button to show it. Whether it is shown, the field
+ * keeps by itself, or the caller with [revealed] and [onRevealedChange] (e.g. to ask for a password a second time only
+ * while it is hidden).
  */
 @Composable
 fun TextFieldRow(
@@ -54,22 +56,24 @@ fun TextFieldRow(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     leadingIcon: ImageVector? = null,
     enabled: Boolean = true,
+    revealed: Boolean? = null,
+    onRevealedChange: ((Boolean) -> Unit)? = null,
 ) {
     if (isMyzelDesign) return MyzelTextFieldRow(
         position = position, value = value, onValueChange = onValueChange, label = label, modifier = modifier,
         placeholder = placeholder, supportingText = supportingText, error = error, isSecret = isSecret,
         singleLine = singleLine, minLines = minLines, maxLines = maxLines, keyboardOptions = keyboardOptions,
-        leadingIcon = leadingIcon, enabled = enabled,
+        leadingIcon = leadingIcon, enabled = enabled, revealed = revealed, onRevealedChange = onRevealedChange,
     )
     TextFieldSurface(
         position.shape(), MaterialTheme.colorScheme.surfaceContainer, value, onValueChange, label, modifier, placeholder, supportingText, error,
-        isSecret, singleLine, minLines, maxLines, keyboardOptions, leadingIcon, enabled,
+        isSecret, singleLine, minLines, maxLines, keyboardOptions, leadingIcon, enabled, revealed, onRevealedChange,
     )
 }
 
 /**
  * A text field as a tile of a [TileCard], e.g. the password below the switch that asks for one; otherwise like
- * [TextFieldRow].
+ * [TextFieldRow], including [revealed] and [onRevealedChange].
  */
 @Composable
 fun TextFieldTile(
@@ -85,10 +89,12 @@ fun TextFieldTile(
     singleLine: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     enabled: Boolean = true,
+    revealed: Boolean? = null,
+    onRevealedChange: ((Boolean) -> Unit)? = null,
 ) {
     TextFieldSurface(
         shape, TileDefaults.containerColor(), value, onValueChange, label, modifier, placeholder, supportingText, error,
-        isSecret, singleLine, 1, if (singleLine) 1 else Int.MAX_VALUE, keyboardOptions, null, enabled,
+        isSecret, singleLine, 1, if (singleLine) 1 else Int.MAX_VALUE, keyboardOptions, null, enabled, revealed, onRevealedChange,
     )
 }
 
@@ -110,9 +116,12 @@ private fun TextFieldSurface(
     keyboardOptions: KeyboardOptions,
     leadingIcon: ImageVector?,
     enabled: Boolean,
+    revealed: Boolean?,
+    onRevealedChange: ((Boolean) -> Unit)?,
 ) {
-    var revealed by rememberSaveable { mutableStateOf(false) }
-    val hidden = isSecret && !revealed
+    var ownRevealed by rememberSaveable { mutableStateOf(false) }
+    val isRevealed = revealed ?: ownRevealed
+    val hidden = isSecret && !isRevealed
     Surface(shape = shape, color = color, modifier = modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = value,
@@ -127,7 +136,12 @@ private fun TextFieldSurface(
             enabled = enabled,
             leadingIcon = leadingIcon?.let { { Icon(it, contentDescription = null) } },
             trailingIcon = if (isSecret) {
-                { RevealButton(hidden) { revealed = !revealed } }
+                {
+                    RevealButton(hidden) {
+                        if (revealed == null) ownRevealed = !isRevealed
+                        onRevealedChange?.invoke(!isRevealed)
+                    }
+                }
             } else {
                 null
             },
